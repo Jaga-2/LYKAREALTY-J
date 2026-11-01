@@ -1,0 +1,218 @@
+---
+name: Haute Real Estate Editorial
+colors:
+  surface: '#faf9f7'
+  surface-dim: '#dadad8'
+  surface-bright: '#faf9f7'
+  surface-container-lowest: '#ffffff'
+  surface-container-low: '#f4f3f1'
+  surface-container: '#efeeec'
+  surface-container-high: '#e9e8e6'
+  surface-container-highest: '#e3e2e0'
+  on-surface: '#1a1c1b'
+  on-surface-variant: '#44474a'
+  inverse-surface: '#2f3130'
+  inverse-on-surface: '#f1f1ef'
+  outline: '#75777a'
+  outline-variant: '#c4c7ca'
+  surface-tint: '#5a5f64'
+  primary: '#090e12'
+  on-primary: '#ffffff'
+  primary-container: '#1f2428'
+  on-primary-container: '#868b90'
+  inverse-primary: '#c2c7cc'
+  secondary: '#735c00'
+  on-secondary: '#ffffff'
+  secondary-container: '#fed65b'
+  on-secondary-container: '#745c00'
+  tertiary: '#220018'
+  on-tertiary: '#ffffff'
+  tertiary-container: '#470435'
+  on-tertiary-container: '#c36fa2'
+  error: '#ba1a1a'
+  on-error: '#ffffff'
+  error-container: '#ffdad6'
+  on-error-container: '#93000a'
+  primary-fixed: '#dfe3e8'
+  primary-fixed-dim: '#c2c7cc'
+  on-primary-fixed: '#171c20'
+  on-primary-fixed-variant: '#42474c'
+  secondary-fixed: '#ffe088'
+  secondary-fixed-dim: '#e9c349'
+  on-secondary-fixed: '#241a00'
+  on-secondary-fixed-variant: '#574500'
+  tertiary-fixed: '#ffd8eb'
+  tertiary-fixed-dim: '#ffaedc'
+  on-tertiary-fixed: '#3c002c'
+  on-tertiary-fixed-variant: '#732c5b'
+  background: '#faf9f7'
+  on-background: '#1a1c1b'
+  surface-variant: '#e3e2e0'
+  champagne-light: '#E9DAC1'
+  champagne-gold: '#C5A880'
+  pure-white: '#FFFFFF'
+  deep-plum: '#3E313C'
+  slate-charcoal: '#121517'
+  border-hairline: rgba(212, 175, 55, 0.22)
+  glass-surface: rgba(255, 255, 255, 0.72)
+  glass-charcoal: rgba(31, 36, 40, 0.78)
+typography:
+  display-hero:
+    fontFamily: Playfair Display
+    fontSize: 64px
+    fontWeight: '600'
+    lineHeight: 76px
+    letterSpacing: -0.02em
+  display-hero-mobile:
+    fontFamily: Playfair Display
+    fontSize: 38px
+    fontWeight: '600'
+    lineHeight: 46px
+    letterSpacing: -0.01em
+  headline-lg:
+    fontFamily: Playfair Display
+    fontSize: 44px
+    fontWeight: '500'
+    lineHeight: 54px
+    letterSpacing: -0.015em
+  headline-lg-mobile:
+    fontFamily: Playfair Display
+    fontSize: 30px
+    fontWeight: '500'
+    lineHeight: 38px
+    letterSpacing: -0.01em
+  headline-md:
+    fontFamily: Playfair Display
+    fontSize: 32px
+    fontWeight: '500'
+    lineHeight: 40px
+    letterSpacing: 0em
+  headline-sm:
+    fontFamily: Playfair Display
+    fontSize: 24px
+    fontWeight: '500'
+    lineHeight: 32px
+    letterSpacing: 0.01em
+  title-md:
+    fontFamily: Inter
+    fontSize: 18px
+    fontWeight: '600'
+    lineHeight: 26px
+    letterSpacing: 0.01em
+  body-lg:
+    fontFamily: Inter
+    fontSize: 18px
+    fontWeight: '300'
+    lineHeight: 30px
+    letterSpacing: 0.01em
+  body-md:
+    fontFamily: Inter
+    fontSize: 15px
+    fontWeight: '400'
+    lineHeight: 24px
+    letterSpacing: 0.005em
+  body-sm:
+    fontFamily: Inter
+    fontSize: 13px
+    fontWeight: '400'
+    lineHeight: 20px
+    letterSpacing: 0.01em
+  label-caps:
+    fontFamily: Inter
+    fontSize: 11px
+    fontWeight: '600'
+    lineHeight: 16px
+    letterSpacing: 0.14em
+  label-md:
+    fontFamily: Inter
+    fontSize: 13px
+    fontWeight: '500'
+    lineHeight: 18px
+    letterSpacing: 0.02em
+  caption:
+    fontFamily: Inter
+    fontSize: 11px
+    fontWeight: '400'
+    lineHeight: 16px
+    letterSpacing: 0.02em
+rounded:
+  sm: 0.125rem
+  DEFAULT: 0.25rem
+  md: 0.375rem
+  lg: 0.5rem
+  xl: 0.75rem
+  full: 9999px
+spacing:
+  gutter: 1.5rem
+  gutter-mobile: 1rem
+  margin: 4rem
+  margin-mobile: 1.25rem
+  space-xs: 0.25rem
+  space-sm: 0.5rem
+  space-md: 1rem
+  space-lg: 1.75rem
+  space-xl: 3rem
+---
+
+## Brand & Style
+
+This design system targets high-net-worth investors, luxury homeowners, and international patrons seeking prime architectural acquisitions in Dubai. The visual identity embodies sovereign prestige, bespoke discretion, and architectural grandeur. 
+
+The aesthetic is an editorial fusion of modern luxury minimalism and tactile glassmorphism. It uses expansive negative space, structured bilateral margins, hairline metallic borders, and deep charcoal tonal layering. Rather than superficial opulence, the interface evokes quiet authority through meticulous typesetting, crisp ivory backgrounds, and delicate champagne-gold framing reminiscent of high-end architectural monographs and private wealth ateliers.
+
+## Colors
+
+The palette balances monumental charcoal structures with radiant warmth and imperial accents:
+
+- **Primary (`#1F2428`):** Deep executive slate-charcoal serving as the structural anchor for typography, navigational framing, and high-impact hero zones.
+- **Secondary (`#D4AF37`):** Warm, polished champagne gold deployed sparingly for active highlights, metallic borders, crests, and micro-accents.
+- **Tertiary (`#5A1645`):** Sovereign imperial plum drawn directly from the brand lineage, utilized for high-tier private client signifiers, VIP badging, and deep contrast focal points.
+- **Neutral (`#F9F8F6`):** Warm architectural ivory that replaces stark browser whites to generate a museum-grade canvas that flatters architectural photography.
+- **Named Accents:**
+  - `champagne-gold` (`#C5A880`) and `champagne-light` (`#E9DAC1`) form smooth metallic gradients and highlight states.
+  - `deep-plum` (`#3E313C`) acts as a softer dark shade for tertiary cards and secondary surfaces.
+  - `border-hairline` provides delicate, non-aggressive architectural delineation.
+
+## Typography
+
+The typographic pairing contrasts classical editorial stature with functional modernist clarity:
+
+- **Headlines (Playfair Display):** High-contrast transitional serifs communicate prestige and timeless European sophistication. Display scales employ tight line heights and negative tracking to preserve poise and stature.
+- **Body & Labels (Inter):** Geometric neo-grotesque sans-serif rendered in light-to-medium weights ensures clarity for technical property specifications, investment metrics, and amenity checklists.
+- **Editorial Sub-rules:** All section tags, architectural badges, and financial metrics utilize `label-caps` rendered in uppercase with generous tracking (`0.14em`) to mirror luxury horology and haute couture signatures.
+
+## Layout & Spacing
+
+The layout model is built on an architectural 12-column grid prioritizing intentional asymmetry, breathing room, and clear focal planes.
+
+- **Desktop (12 Columns):** 64px margins and 24px gutters. Standard content container locks at 1440px max-width, while exclusive immersive gallery rails break cleanly to 100vw.
+- **Tablet (8 Columns):** 32px margins and 20px gutters. Dual-pane property cards collapse into staggered alternating flows.
+- **Mobile (4 Columns):** 20px margins and 16px gutters. Structural offsets yield to vertical editorial layouts with full-bleed imagery and compact status headers.
+- **Rhythm:** Spacing follows an intentional geometric cadence. Content dense clusters rely on `space-sm` and `space-md`, while property descriptions, gallery transitions, and section divisions command `space-xl` (48px) and multi-token compounds (e.g., 96px/128px section margins) to preserve a gallery-like presence.
+
+## Elevation & Depth
+
+Visual hierarchy departs from standard drop shadows in favor of ambient luminescence, backdrop blur, and hairline metallics:
+
+- **Level 0 (Canvas Base):** Warm ivory (`#F9F8F6`) or solid slate-charcoal (`#121517`) with zero elevation.
+- **Level 1 (Card & Section Surfaces):** Immaculate pure white (`#FFFFFF`) or frosted glass (`rgba(255, 255, 255, 0.75)`) layered over images, supported by a 1px solid hairline border in gold (`rgba(212, 175, 55, 0.2)`). Diffused shadow: `0 8px 32px -8px rgba(31, 36, 40, 0.06)`.
+- **Level 2 (Hover States & Dropdowns):** Subtle upward lift (`translateY(-3px)`) with heightened luminescence: `0 16px 40px -10px rgba(31, 36, 40, 0.10)` paired with gold border opacity increased to `0.45`.
+- **Level 3 (Modal Portals & Exclusive Overlays):** Frosted glassmorphism (`backdrop-filter: blur(20px) saturate(160%)`), layered with `rgba(18, 21, 23, 0.45)` ambient shielding and `0 24px 64px -12px rgba(0, 0, 0, 0.35)`.
+
+## Shapes
+
+The system implements a refined "Soft" architectural geometry (`roundedness: 1`). Rather than rounded or pill-shaped consumer patterns, shapes utilize precise, tailored radii (0.25rem / 4px base; 0.5rem / 8px for containers; 0.75rem / 12px for primary imagery overlays). 
+
+This sharp, disciplined profile reflects architectural stonework, cut crystal, and modern structural facades, projecting security, permanence, and refined craft.
+
+## Components
+
+- **Primary Buttons:** High-contrast slate-charcoal background (`#1F2428`) with champagne gold typography and a razor-thin 1px gold border (`rgba(212, 175, 55, 0.3)`). Hover triggers an interior gold luminescence and slight border illumination without aggressive transitions.
+- **Secondary Buttons:** Clear background framed with a 1px border of `#C5A880`. Typography styled in `label-caps` in deep charcoal or warm ivory. Hover transitions to an ultra-soft gold tint (`rgba(212, 175, 55, 0.08)`).
+- **Listing & Property Cards:** Immaculate white backgrounds (`#FFFFFF`) or dark frosted slate, bordered by a subtle 1px champagne line. Imagery features a strict 4:3 or 16:9 ratio with corner radius capped at 4px. Footers cleanly partition square footage, bedroom counts, and asking prices using `label-caps` and `Playfair Display` numerals.
+- **Badges & Status Chips:** Ultra-compact containers featuring 2px corner radiuses, subtle frosted backdrops (`rgba(255, 255, 255, 0.85)`), and tracked uppercase typography (`10px`). Signature states (e.g., "Off-Market", "Penthouse Collection") utilize deep plum (`#5A1645`) background fills with gold lettering.
+- **Inputs & Search Sliders:** Minimalist underline or boxed inputs with 1px border (`#C5A880` at 30% resting; 100% active). Focus state never introduces blue halos; it uses an interior champagne glow and label translation.
+- **Checkboxes & Radios:** Sharp, custom square or circle controls framed in gold hairline strokes, filled with deep slate-charcoal and a gold dot/check indicator.
+- **Specialty Components:**
+  - *VIP Atelier Drawer:* Full-height right-rail navigation panel draped in translucent charcoal glass with gold divider rules.
+  - *Architectural Metric Pillars:* Modular horizontal stat displays showing price per sq.ft., handover timelines, and ROI metrics with large serif numbers and micro uppercase labels.

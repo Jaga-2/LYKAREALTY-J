@@ -1,0 +1,6 @@
+{
+  "name": "LYKA Realty",
+  "description": "Haute Real Estate Editorial and prime architectural acquisitions in Dubai and ultra-prime enclaves.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
