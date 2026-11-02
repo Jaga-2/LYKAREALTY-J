@@ -27,6 +27,7 @@ import { formatCurrency } from '../utils/currency';
 import { crmService } from '../services/crmService';
 import { useAuth } from '../context/AuthContext';
 import { processClientAssistantTurn } from '../services/clientAssistantEngine';
+import { apiUrl } from '../lib/api';
 
 interface AIAssistantModalProps {
   isOpen: boolean;
@@ -110,7 +111,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
           ? 'أهلاً بكم في دار لايكا العقارية! يسعدني جداً مساعدتكم في استكشاف أرقى عقارات دبي. ما الذي تتطلعون إليه اليوم، شراء أم إيجار؟'
           : voiceLang === 'tanglish'
           ? 'Vanakkam bro! LYKA Realty la Dubai property options ah explore pannanum. Rent ah buy ah?'
-          : "Hello! Welcome to LYKA Realty. I'm happy to help you explore Dubai properties. What are you looking for today?",
+          : "Hi! Welcome to LYKA Realty. How are you today?",
       timestamp: 'Just now',
       source: 'gemini',
       suggestions:
@@ -160,7 +161,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                 ? 'أهلاً بكم في دار لايكا العقارية! يسعدني جداً مساعدتكم في استكشاف أرقى عقارات دبي. ما الذي تتطلعون إليه اليوم، شراء أم إيجار؟'
                 : appLanguage === 'tanglish'
                 ? 'Vanakkam bro! LYKA Realty la Dubai property options ah explore pannanum. Rent ah buy ah?'
-                : "Hello! Welcome to LYKA Realty. I'm happy to help you explore Dubai properties. What are you looking for today?",
+                : "Hi! Welcome to LYKA Realty. How are you today?",
             suggestions:
               appLanguage === 'ta'
                 ? [
@@ -280,7 +281,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
 
     try {
 
-      const res = await fetch('/api/assistant', {
+      const res = await fetch(apiUrl('/api/assistant'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

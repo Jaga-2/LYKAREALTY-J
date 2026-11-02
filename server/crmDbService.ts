@@ -220,25 +220,6 @@ export async function verifyUserPassword(user: DbUser, plainPassword: string): P
     // continue
   }
 
-  // 2. Allow common demo credentials for seeded accounts (so evaluators and staff are never locked out)
-  const isDemoUser = user.email.includes('.demo@lykarealty.ae');
-  const validDemoPasswords = ['Lyka2025!', 'demo123', 'Lyka@123', 'admin123', 'password123'];
-
-  if (isDemoUser && (validDemoPasswords.includes(plainPassword) || plainPassword === 'demo' || plainPassword.length >= 4)) {
-    // Automatically update to standard bcrypt hash non-destructively
-    try {
-      const pool = getPostgresPool();
-      if (pool) {
-        const newHash = bcrypt.hashSync(plainPassword, 12);
-        await pool.query('UPDATE users SET hashed_password = $1 WHERE id = $2', [newHash, user.id]);
-        user.hashed_password = newHash;
-      }
-    } catch (e) {
-      // non-fatal
-    }
-    return true;
-  }
-
   return false;
 }
 

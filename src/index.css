@@ -15,6 +15,13 @@
     font-family: var(--font-sans);
     background-color: #faf9f7;
     color: #1a1c1b;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  html {
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, .font-editorial {

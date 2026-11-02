@@ -1,7 +1,8 @@
 // High-fidelity CRM API Service communicating with the persistent backend database
 import { Lead, ActivityRecord, ViewingAppointment, DealTransaction, StaffMember, AuditLogEntry, ComplianceDocument, CustomerEnquiry } from './mockData';
+import { apiUrl } from '../lib/api';
 
-const BASE_URL = '/api/crm';
+const BASE_URL = apiUrl('/api/crm');
 
 function getAuthHeaders(): Record<string, string> {
   const token = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('lyka_session_token') : null;

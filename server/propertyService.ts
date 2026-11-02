@@ -37,6 +37,30 @@ export interface PropertyRecord {
   latitude?: number;
   longitude?: number;
   isActive: boolean;
+  isIllustrativeImages: boolean;
+}
+
+const PROPERTY_DEMO_IMAGES = [
+  '/assets/images/hero_dubai_residence_1793286170254.jpg',
+  '/assets/images/palm_sky_mansion_1793286170250.jpg',
+  '/assets/images/downtown_penthouse_1793286171305.jpg',
+  '/assets/images/jumeirah_bay_villa_1793286171289.jpg',
+  '/assets/images/emirates_hills_estate_1793286171394.jpg',
+  '/assets/images/virtual_tour_3d_render_1793287878016.jpg'
+];
+
+function getStableDemoGallery(propertyId: string): string[] {
+  let hash = 0;
+  for (let i = 0; i < propertyId.length; i += 1) {
+    hash = ((hash * 31) + propertyId.charCodeAt(i)) >>> 0;
+  }
+  const start = hash % PROPERTY_DEMO_IMAGES.length;
+  const gallery: string[] = [];
+  for (let offset = 0; gallery.length < 4; offset += 1) {
+    const candidate = PROPERTY_DEMO_IMAGES[(start + offset) % PROPERTY_DEMO_IMAGES.length];
+    if (!gallery.includes(candidate)) gallery.push(candidate);
+  }
+  return gallery;
 }
 
 export interface PropertySearchFilters {
@@ -64,47 +88,21 @@ export interface SearchResult {
   totalPages: number;
 }
 
-// Curated luxury architectural photograph fallbacks matching property types
-const ARCHITECTURAL_IMAGE_FALLBACKS: Record<string, string[]> = {
-  villa: [
-    '/src/assets/images/palm_sky_mansion_1793286170250.jpg',
-    '/src/assets/images/jumeirah_bay_villa_1793286171289.jpg',
-    '/src/assets/images/emirates_hills_estate_1793286171394.jpg'
-  ],
-  apartment: [
-    '/src/assets/images/downtown_penthouse_1793286171305.jpg',
-    '/src/assets/images/hero_dubai_residence_1793286170254.jpg',
-    '/src/assets/images/virtual_tour_3d_render_1793287878016.jpg'
-  ],
-  penthouse: [
-    '/src/assets/images/downtown_penthouse_1793286171305.jpg',
-    '/src/assets/images/palm_sky_mansion_1793286170250.jpg'
-  ],
-  townhouse: [
-    '/src/assets/images/emirates_hills_estate_1793286171394.jpg',
-    '/src/assets/images/hero_dubai_residence_1793286170254.jpg'
-  ],
-  default: [
-    '/src/assets/images/hero_dubai_residence_1793286170254.jpg',
-    '/src/assets/images/palm_sky_mansion_1793286170250.jpg',
-    '/src/assets/images/downtown_penthouse_1793286171305.jpg'
-  ]
-};
-
-function getCuratedFallbackImages(propertyType: string, id: number | string): { primary: string; gallery: string[] } {
-  const normType = (propertyType || '').toLowerCase();
-  let pool = ARCHITECTURAL_IMAGE_FALLBACKS.default;
-  if (normType.includes('villa')) pool = ARCHITECTURAL_IMAGE_FALLBACKS.villa;
-  else if (normType.includes('penthouse')) pool = ARCHITECTURAL_IMAGE_FALLBACKS.penthouse;
-  else if (normType.includes('apartment')) pool = ARCHITECTURAL_IMAGE_FALLBACKS.apartment;
-  else if (normType.includes('townhouse')) pool = ARCHITECTURAL_IMAGE_FALLBACKS.townhouse;
-
-  const numId = typeof id === 'number' ? id : parseInt(String(id).replace(/\D/g, ''), 10) || 0;
-  const idx = Math.abs(numId) % pool.length;
-  return {
-    primary: pool[idx],
-    gallery: pool
-  };
+function normalizePropertyImageUrl(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^\/?src\/assets\/images\//i.test(trimmed)) {
+    return trimmed.replace(/^\/?src\/assets\/images\//i, '/assets/images/');
+  }
+  if (/^public\/assets\/images\//i.test(trimmed)) {
+    return trimmed.replace(/^public\/assets\/images\//i, '/assets/images/');
+  }
+  if (/^assets\/images\//i.test(trimmed)) return `/${trimmed}`;
+  if (/^images\/[^/]+$/i.test(trimmed)) return `/assets/${trimmed}`;
+  if (/^[^/?#]+\.(avif|gif|jpe?g|png|webp)$/i.test(trimmed)) return `/assets/images/${trimmed}`;
+  return trimmed.startsWith('/') ? trimmed : '';
 }
 
 // Convert coordinates to percentage for interactive UI map view
@@ -125,15 +123,33 @@ function convertCoordsToPercentage(lat?: number, lng?: number): { x: number; y: 
 export function mapDatabaseRowToProperty(row: any): PropertyRecord {
   let parsedImages: string[] = [];
   try {
-    if (typeof row.images === 'string') {
-      const trimmed = row.images.trim();
+    const imageData = row.images ?? row.image ?? row.image_url ?? row.thumbnail ?? null;
+    if (typeof imageData === 'string') {
+      const trimmed = imageData.trim();
       if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-        parsedImages = JSON.parse(trimmed);
+        const jsonImages = JSON.parse(trimmed);
+        parsedImages = Array.isArray(jsonImages) ? jsonImages : [];
+      } else if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+        const jsonImage = JSON.parse(trimmed);
+        const candidates = [
+          jsonImage.url,
+          jsonImage.image,
+          jsonImage.image_url,
+          jsonImage.thumbnail,
+          ...(Array.isArray(jsonImage.images) ? jsonImage.images : [])
+        ];
+        parsedImages = candidates.filter((value): value is string => typeof value === 'string');
       } else if (trimmed) {
         parsedImages = [trimmed];
       }
-    } else if (Array.isArray(row.images)) {
-      parsedImages = row.images;
+    } else if (Array.isArray(imageData)) {
+      parsedImages = imageData
+        .map((value) => typeof value === 'string'
+          ? value
+          : value && typeof value === 'object'
+            ? (value.url || value.image || value.image_url || value.thumbnail)
+            : null)
+        .filter((value): value is string => typeof value === 'string');
     }
   } catch {
     parsedImages = [];
@@ -155,9 +171,11 @@ export function mapDatabaseRowToProperty(row: any): PropertyRecord {
     parsedAmenities = [];
   }
 
-  const fallbacks = getCuratedFallbackImages(row.property_type, row.id);
-  const primaryImage = parsedImages.length > 0 ? parsedImages[0] : fallbacks.primary;
-  const gallery = parsedImages.length > 0 ? parsedImages : fallbacks.gallery;
+  const normalizedImages = parsedImages.map(normalizePropertyImageUrl).filter(Boolean);
+  const demoGallery = getStableDemoGallery(String(row.id));
+  const gallery = Array.from(new Set([...normalizedImages, ...demoGallery])).slice(0, 4);
+  const primaryImage = normalizedImages[0] || demoGallery[0];
+  const isIllustrativeImages = normalizedImages.length === 0 || gallery.length > normalizedImages.length;
 
   const rentPrice = row.rent_price !== null && row.rent_price !== undefined ? Number(row.rent_price) : undefined;
   const salePrice = row.sale_price !== null && row.sale_price !== undefined ? Number(row.sale_price) : undefined;
@@ -212,7 +230,8 @@ export function mapDatabaseRowToProperty(row: any): PropertyRecord {
     coordinates: convertCoordsToPercentage(row.latitude, row.longitude),
     latitude: row.latitude ? Number(row.latitude) : undefined,
     longitude: row.longitude ? Number(row.longitude) : undefined,
-    isActive: Boolean(row.is_active)
+    isActive: Boolean(row.is_active),
+    isIllustrativeImages: isIllustrativeImages
   };
 }
 
@@ -503,4 +522,3 @@ export async function findPropertiesForAssistantDb(
     };
   });
 }
-

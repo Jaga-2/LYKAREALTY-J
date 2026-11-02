@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Property, Currency, AreaUnit } from '../types';
 import { formatPrice, formatFullPrice, formatArea } from '../data/properties';
 import { useLanguage } from '../context/LanguageContext';
+import { PropertyImage } from './PropertyImage';
 import {
   X,
   Plus,
@@ -231,10 +232,9 @@ export const PropertyComparisonModal: React.FC<PropertyComparisonModalProps> = (
 
                           {/* 16:9 Image Preview */}
                           <div className="relative aspect-[16/9] w-full rounded-[2px] overflow-hidden bg-[#1f2428] border border-[#c5a880]/20">
-                            <img
+                            <PropertyImage
                               src={property.image}
                               alt={property.title}
-                              referrerPolicy="no-referrer"
                               className="w-full h-full object-cover"
                             />
                             <div className="absolute top-2 left-2 px-1.5 py-0.5 text-[8px] font-semibold tracking-wider uppercase bg-[#1f2428]/85 text-[#c5a880] rounded-[1px]">

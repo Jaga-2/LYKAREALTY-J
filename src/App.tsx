@@ -24,6 +24,7 @@ import { StaffLoginScreen } from './components/StaffLoginScreen';
 import { CurrencyProvider, useCurrency } from './context/CurrencyContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { apiUrl } from './lib/api';
 import { Sparkles, ShieldAlert } from 'lucide-react';
 
 const SCREEN_TO_HASH: Record<Screen, string> = {
@@ -135,7 +136,7 @@ function AppContent() {
   // Load real properties from connected database for curated display
   useEffect(() => {
     let isMounted = true;
-    fetch('/api/properties?limit=6&sortBy=price-desc')
+    fetch(apiUrl('/api/properties?limit=6&sortBy=price-desc'))
       .then((res) => res.json())
       .then((data) => {
         if (isMounted && data.properties && data.properties.length > 0) {

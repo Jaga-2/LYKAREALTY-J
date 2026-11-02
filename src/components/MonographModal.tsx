@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Property, Currency, AreaUnit } from '../types';
 import { formatPrice, formatFullPrice, formatArea } from '../data/properties';
 import { useLanguage } from '../context/LanguageContext';
+import {
+  normalizePropertyImageUrl,
+  PROPERTY_IMAGE_FALLBACK
+} from '../lib/propertyImage';
+import { PropertyImage } from './PropertyImage';
 import {
   X,
   Bookmark,
@@ -43,6 +48,7 @@ export const MonographModal: React.FC<MonographModalProps> = ({
   const [isVirtualTourActive, setIsVirtualTourActive] = useState(false);
   const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
   const [virtualTourPan, setVirtualTourPan] = useState(0);
+  const [isImageFullscreen, setIsImageFullscreen] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -50,7 +56,7 @@ export const MonographModal: React.FC<MonographModalProps> = ({
   const [patronType, setPatronType] = useState('Private Principal / HNWI');
   const [requireNda, setRequireNda] = useState(true);
 
-  const virtualTourRenderPath = '/src/assets/images/virtual_tour_3d_render_1793287878016.jpg';
+  const virtualTourRenderPath = '/assets/images/virtual_tour_3d_render_1793287878016.jpg';
 
   const hotspots = [
     {
@@ -83,7 +89,17 @@ export const MonographModal: React.FC<MonographModalProps> = ({
     }
   ];
 
-  const images = property.gallery && property.gallery.length > 0 ? property.gallery : [property.image];
+  const images = (property.gallery && property.gallery.length > 0 ? property.gallery : [property.image])
+    .map(normalizePropertyImageUrl);
+  const hasVerifiedVisualAssets =
+    property.id.startsWith('res-') &&
+    images.some((image) => image !== PROPERTY_IMAGE_FALLBACK);
+
+  useEffect(() => {
+    setIsVirtualTourActive(false);
+    setActiveImageIndex(0);
+    setActiveHotspot(null);
+  }, [property.id]);
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,7 +167,7 @@ export const MonographModal: React.FC<MonographModalProps> = ({
           <div>
             <div className="relative aspect-[16/9] w-full rounded-[3px] overflow-hidden bg-[#121517] border border-[#c5a880]/30 mb-3 group select-none shadow-xl">
               
-              {isVirtualTourActive ? (
+              {isVirtualTourActive && hasVerifiedVisualAssets ? (
                 /* 3D Architectural Virtual Tour Viewport */
                 <div className="relative w-full h-full overflow-hidden">
                   
@@ -285,12 +301,47 @@ export const MonographModal: React.FC<MonographModalProps> = ({
               ) : (
                 /* Still Photo View with Virtual Tour Entry Button */
                 <>
-                  <img
+                  <PropertyImage
                     src={images[activeImageIndex]}
                     alt={property.title}
-                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-102"
                   />
+
+                  {property.isIllustrativeImages && (
+                    <div className="absolute bottom-4 left-4 z-20 px-3 py-1.5 bg-[#121517]/90 text-white text-[9px] font-bold tracking-[0.16em] uppercase rounded-[2px] border border-[#c5a880]/40">
+                      Illustrative Demo Images
+                    </div>
+                  )}
+
+                  {images.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setActiveImageIndex((activeImageIndex - 1 + images.length) % images.length)}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 px-3 py-2 bg-[#121517]/80 text-[#c5a880] border border-[#c5a880]/40 rounded-[2px] text-xs"
+                        aria-label="Previous image"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveImageIndex((activeImageIndex + 1) % images.length)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 px-3 py-2 bg-[#121517]/80 text-[#c5a880] border border-[#c5a880]/40 rounded-[2px] text-xs"
+                        aria-label="Next image"
+                      >
+                        Next
+                      </button>
+                    </>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setIsImageFullscreen(true)}
+                    className="absolute bottom-4 right-4 z-20 p-2.5 bg-[#121517]/90 text-[#c5a880] border border-[#c5a880]/50 rounded-[2px] hover:bg-[#1f2428]"
+                    aria-label="View full-size image"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                  </button>
 
                   {/* Left Typology Chip */}
                   <div className="absolute top-4 left-4 rtl:left-auto rtl:right-4">
@@ -299,18 +350,20 @@ export const MonographModal: React.FC<MonographModalProps> = ({
                     </span>
                   </div>
 
-                  {/* Prominent Virtual Tour 3D Action Button */}
-                  <div className="absolute top-4 right-4 rtl:right-auto rtl:left-4">
-                    <button
-                      type="button"
-                      onClick={() => setIsVirtualTourActive(true)}
-                      className="px-4 py-2 bg-[#1f2428]/95 hover:bg-[#121517] text-[#c5a880] hover:text-[#ffe088] rounded-[3px] border border-[#c5a880]/60 hover:border-[#c5a880] backdrop-blur-md shadow-xl flex items-center gap-2 text-xs font-semibold tracking-[0.12em] uppercase transition-all group/btn cursor-pointer"
-                    >
-                      <RotateCw className="w-3.5 h-3.5 text-[#c5a880] group-hover/btn:rotate-180 transition-transform duration-500" />
-                      <span>{t.modal.virtualTourBtn}</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37] animate-pulse" />
-                    </button>
-                  </div>
+                  {/* Virtual tours are only available for matched local editorial properties. */}
+                  {hasVerifiedVisualAssets && (
+                    <div className="absolute top-4 right-4 rtl:right-auto rtl:left-4">
+                      <button
+                        type="button"
+                        onClick={() => setIsVirtualTourActive(true)}
+                        className="px-4 py-2 bg-[#1f2428]/95 hover:bg-[#121517] text-[#c5a880] hover:text-[#ffe088] rounded-[3px] border border-[#c5a880]/60 hover:border-[#c5a880] backdrop-blur-md shadow-xl flex items-center gap-2 text-xs font-semibold tracking-[0.12em] uppercase transition-all group/btn cursor-pointer"
+                      >
+                        <RotateCw className="w-3.5 h-3.5 text-[#c5a880] group-hover/btn:rotate-180 transition-transform duration-500" />
+                        <span>{t.modal.virtualTourBtn}</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37] animate-pulse" />
+                      </button>
+                    </div>
+                  )}
                 </>
               )}
 
@@ -320,26 +373,28 @@ export const MonographModal: React.FC<MonographModalProps> = ({
             <div className="flex items-center gap-3 overflow-x-auto pb-2">
               
               {/* Virtual Tour 3D Dedicated Thumbnail */}
-              <button
-                type="button"
-                onClick={() => setIsVirtualTourActive(true)}
-                className={`relative w-28 h-16 rounded-[2px] overflow-hidden shrink-0 border transition-all flex flex-col justify-end p-1.5 ${
-                  isVirtualTourActive
-                    ? 'border-[#c5a880] ring-2 ring-[#c5a880] shadow-md'
-                    : 'border-[#c5a880]/40 opacity-80 hover:opacity-100 hover:border-[#c5a880]'
-                }`}
-              >
-                <img
-                  src={virtualTourRenderPath}
-                  alt="3D Virtual Tour Thumbnail"
-                  referrerPolicy="no-referrer"
-                  className="absolute inset-0 w-full h-full object-cover filter brightness-[0.75]"
-                />
-                <div className="relative z-10 flex items-center gap-1 text-[9px] font-semibold tracking-wider uppercase text-[#ffe088]">
-                  <RotateCw className="w-2.5 h-2.5" />
-                  <span>3D Tour</span>
-                </div>
-              </button>
+              {hasVerifiedVisualAssets && (
+                <button
+                  type="button"
+                  onClick={() => setIsVirtualTourActive(true)}
+                  className={`relative w-28 h-16 rounded-[2px] overflow-hidden shrink-0 border transition-all flex flex-col justify-end p-1.5 ${
+                    isVirtualTourActive
+                      ? 'border-[#c5a880] ring-2 ring-[#c5a880] shadow-md'
+                      : 'border-[#c5a880]/40 opacity-80 hover:opacity-100 hover:border-[#c5a880]'
+                  }`}
+                >
+                  <img
+                    src={virtualTourRenderPath}
+                    alt="3D Virtual Tour Thumbnail"
+                    referrerPolicy="no-referrer"
+                    className="absolute inset-0 w-full h-full object-cover filter brightness-[0.75]"
+                  />
+                  <div className="relative z-10 flex items-center gap-1 text-[9px] font-semibold tracking-wider uppercase text-[#ffe088]">
+                    <RotateCw className="w-2.5 h-2.5" />
+                    <span>3D Tour</span>
+                  </div>
+                </button>
+              )}
 
               {/* Still Photo Thumbnails */}
               {images.map((img, idx) => (
@@ -356,7 +411,7 @@ export const MonographModal: React.FC<MonographModalProps> = ({
                       : 'border-transparent opacity-60 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                  <PropertyImage src={img} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
 
@@ -618,6 +673,35 @@ export const MonographModal: React.FC<MonographModalProps> = ({
         </div>
 
       </div>
+      {isImageFullscreen && (
+        <div
+          className="fixed inset-0 z-[70] bg-black/95 flex items-center justify-center p-4 sm:p-8"
+          onClick={() => setIsImageFullscreen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full-size property image"
+        >
+          <button
+            type="button"
+            onClick={() => setIsImageFullscreen(false)}
+            className="absolute top-4 right-4 p-2 text-white border border-white/30 rounded-[2px] bg-black/40"
+            aria-label="Close full-size image"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <PropertyImage
+            src={images[activeImageIndex]}
+            alt={property.title}
+            eager
+            className="max-w-full max-h-[calc(100vh-4rem)] w-full h-full object-contain"
+          />
+          {property.isIllustrativeImages && (
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/80 text-white text-[10px] font-bold tracking-[0.16em] uppercase rounded-[2px] border border-[#c5a880]/40">
+              Illustrative Demo Images
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

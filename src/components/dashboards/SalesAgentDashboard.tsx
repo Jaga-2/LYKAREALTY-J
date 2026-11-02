@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { apiUrl } from '../../lib/api';
 import {
   Briefcase,
   Phone,
@@ -74,7 +75,7 @@ export const SalesAgentDashboard: React.FC = () => {
   const loadChecklist = useCallback(async (leadId: string) => {
     setChecklistLoading(true);
     try {
-      const res = await fetch(`/api/crm/checklist/${leadId}`, {
+      const res = await fetch(apiUrl(`/api/crm/checklist/${leadId}`), {
         headers: { 'x-session-token': sessionStorage.getItem('lyka_session_token') || '' }
       });
       if (res.ok) {
@@ -97,7 +98,7 @@ export const SalesAgentDashboard: React.FC = () => {
       prev.map((s) => (s.stepKey === stepKey ? { ...s, isCompleted: newValue } : s))
     );
     try {
-      await fetch(`/api/crm/checklist/${selectedLead.id}/${stepKey}`, {
+      await fetch(apiUrl(`/api/crm/checklist/${selectedLead.id}/${stepKey}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -115,7 +116,7 @@ export const SalesAgentDashboard: React.FC = () => {
 
   const loadNotifications = useCallback(async () => {
     try {
-      const res = await fetch('/api/notifications?unread=true', {
+      const res = await fetch(apiUrl('/api/notifications?unread=true'), {
         headers: { 'x-session-token': sessionStorage.getItem('lyka_session_token') || '' }
       });
       if (res.ok) {
@@ -130,7 +131,7 @@ export const SalesAgentDashboard: React.FC = () => {
   const handleMarkNotifRead = async (id: number) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     try {
-      await fetch(`/api/notifications/${id}/read`, {
+      await fetch(apiUrl(`/api/notifications/${id}/read`), {
         method: 'PATCH',
         headers: { 'x-session-token': sessionStorage.getItem('lyka_session_token') || '' }
       });

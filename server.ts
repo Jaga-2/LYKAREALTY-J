@@ -1,6 +1,8 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import { fileURLToPath } from 'url';
 import * as db from './server/db.js';
 import {
@@ -64,6 +66,27 @@ const HOST = '0.0.0.0';
 
 app.use(express.json({ limit: '500kb' }));
 
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const allowed = !origin || allowedOrigins.length === 0 ||
+    allowedOrigins.includes(origin) ||
+    origin.endsWith('.vercel.app') ||
+    /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
+
+  if (origin && allowed) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PATCH,PUT,DELETE,OPTIONS');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 // -------------------------------------------------------------
 // RATE LIMITING & SECURITY MIDDLEWARE
 // -------------------------------------------------------------
@@ -112,12 +135,38 @@ app.get('/api/health', (req, res) => {
 // AUTHENTICATION & ROLE MANAGEMENT (/api/auth/*)
 // -------------------------------------------------------------
 
+app.get('/api/auth/local-staff-diagnostics', (req, res) => {
+  const remoteAddress = String(req.ip || '');
+  const isLocalRequest = remoteAddress === '127.0.0.1'
+    || remoteAddress === '::1'
+    || remoteAddress === '::ffff:127.0.0.1'
+    || remoteAddress.startsWith('localhost');
+  if (!isLocalRequest) {
+    return res.status(404).json({ error: 'Not found.' });
+  }
+
+  const allowedRoles = new Set(['sales_agent', 'admin', 'super_admin', 'manager']);
+  const staff = db.getDb().users
+    .filter((user) => allowedRoles.has(user.role))
+    .map((user) => ({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      passwordConfigured: user.passwordHash !== 'preset_demo_user'
+    }));
+
+  return res.json({ staff });
+});
+
 // Sign In with email / role / password (Client & General)
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password, role } = req.body;
     if (!email) {
       return res.status(400).json({ error: 'Email address is required.' });
+    }
+    if (!password) {
+      return res.status(400).json({ error: 'Password is required.' });
     }
 
     if (isPostgresConfigured()) {
@@ -130,53 +179,45 @@ app.post('/api/auth/login', async (req, res) => {
               return res.status(401).json({ error: 'Incorrect credentials for this account.' });
             }
           }
+          if (role && dbUser.role !== role && !(role === 'admin' && dbUser.role === 'super_admin')) {
+            return res.status(403).json({ error: 'The account exists, but its role does not match the selected login.' });
+          }
+          if (!dbUser.is_active) {
+            return res.status(403).json({ error: 'This account is inactive. Contact a LYKA administrator.' });
+          }
           const authUser = mapDbUserToAuth(dbUser);
           const token = generateSessionToken(authUser);
           return res.json({ token, user: authUser });
         }
+        return res.status(401).json({ error: 'Account not found. Please verify the email address.' });
       } catch (dbErr: any) {
-        console.warn('[Auth API] PostgreSQL auth error, falling back to local accounts:', dbErr.message);
+        console.warn('[Auth API] PostgreSQL auth error:', dbErr.message);
+        return res.status(503).json({ error: 'Authentication service is temporarily unavailable.' });
       }
     }
 
-    let user = db.findUserByEmail(email);
-
-    // If user does not exist in local db, allow demo accounts to authenticate based on role
-    if (!user) {
-      const presetUser = db.getDb().users.find((u) => u.role === role);
-      if (presetUser) {
-        user = presetUser;
-      } else {
-        user = {
-          id: `usr-${Date.now()}`,
-          email,
-          passwordHash: 'demo_hash',
-          role: role || 'customer',
-          name: email.split('@')[0],
-          phone: '+971 50 000 0000',
-          title: 'Sovereign Client',
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-        };
-      }
+    const localUser = db.findUserByEmail(email);
+    if (!localUser || localUser.passwordHash === 'preset_demo_user') {
+      return res.status(401).json({ error: 'Account not found or password is not configured.' });
     }
-
+    if (role && localUser.role !== role) {
+      return res.status(403).json({ error: 'The account exists, but its role does not match the selected login.' });
+    }
+    if (!password || crypto.createHash('sha256').update(password).digest('hex') !== localUser.passwordHash) {
+      return res.status(401).json({ error: 'Incorrect credentials for this account.' });
+    }
     const authUser: AuthenticatedUser = {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      name: user.name,
-      phone: user.phone,
-      title: user.title,
-      avatar: user.avatar,
-      assignedAgentId: user.assignedAgentId
+      id: localUser.id,
+      email: localUser.email,
+      role: localUser.role,
+      name: localUser.name,
+      phone: localUser.phone,
+      title: localUser.title,
+      avatar: localUser.avatar,
+      assignedAgentId: localUser.assignedAgentId
     };
-
     const token = generateSessionToken(authUser);
-
-    res.json({
-      token,
-      user: authUser
-    });
+    return res.json({ token, user: authUser });
   } catch (err: any) {
     res.status(500).json({ error: 'Authentication failed: ' + err.message });
   }
@@ -196,6 +237,9 @@ app.post('/api/auth/staff-login', async (req, res) => {
         if (dbUser) {
           if (!['sales_agent', 'admin', 'super_admin', 'manager'].includes(dbUser.role)) {
             return res.status(403).json({ error: 'Access restricted to authorized LYKA Realty personnel.' });
+          }
+          if (!dbUser.is_active) {
+            return res.status(403).json({ error: 'This staff account is inactive. Contact a LYKA administrator.' });
           }
 
           const isValid = await verifyUserPassword(dbUser, password);
@@ -226,10 +270,25 @@ app.post('/api/auth/staff-login', async (req, res) => {
       }
     }
 
-    // Local fallback
     const localUser = db.findUserByEmail(email);
-    if (!localUser || localUser.role === 'customer') {
-      return res.status(401).json({ error: 'Staff account not found or unauthorized.' });
+    if (!localUser) {
+      return res.status(401).json({ error: 'Staff account not found. Please verify the corporate email address.' });
+    }
+    if (!['sales_agent', 'admin', 'super_admin', 'manager'].includes(localUser.role)) {
+      return res.status(403).json({ error: 'Access restricted to authorized LYKA Realty personnel.' });
+    }
+    if (!localUser.passwordHash || localUser.passwordHash === 'preset_demo_user') {
+      return res.status(401).json({ error: 'Local staff password is not configured. Use the secure local password setup procedure.' });
+    }
+
+    let localPasswordValid = false;
+    if (localUser.passwordHash.startsWith('$2')) {
+      localPasswordValid = bcrypt.compareSync(password, localUser.passwordHash);
+    } else {
+      localPasswordValid = crypto.createHash('sha256').update(password).digest('hex') === localUser.passwordHash;
+    }
+    if (!localPasswordValid) {
+      return res.status(401).json({ error: 'Invalid staff credentials. Check the email and password.' });
     }
 
     const authUser: AuthenticatedUser = {
@@ -239,11 +298,12 @@ app.post('/api/auth/staff-login', async (req, res) => {
       name: localUser.name,
       phone: localUser.phone,
       title: localUser.title,
-      avatar: localUser.avatar
+      avatar: localUser.avatar,
+      assignedAgentId: localUser.assignedAgentId
     };
-
     const token = generateSessionToken(authUser);
-    res.json({ token, user: authUser });
+    return res.json({ token, user: authUser });
+
   } catch (err: any) {
     res.status(500).json({ error: 'Staff authentication failed: ' + err.message });
   }

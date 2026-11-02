@@ -34,14 +34,14 @@ export const AuthRoleModal: React.FC<AuthRoleModalProps> = ({ onNavigateToRoleDa
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginEmail) {
-      setError('Please provide your client email address.');
+    if (!loginEmail.trim() || !loginPassword) {
+      setError('Please provide your client email address and password.');
       return;
     }
     setError(null);
     setIsLoading(true);
     try {
-      await login(loginEmail, 'customer', loginPassword || 'Lyka2025!');
+      await login(loginEmail, 'customer', loginPassword);
       setIsAuthModalOpen(false);
       onNavigateToRoleDashboard('customer-portal');
     } catch (err: any) {
@@ -68,11 +68,6 @@ export const AuthRoleModal: React.FC<AuthRoleModalProps> = ({ onNavigateToRoleDa
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleDemoClientQuickFill = () => {
-    setLoginEmail('customer.demo@lykarealty.ae');
-    setLoginPassword('Lyka2025!');
   };
 
   return (
@@ -216,18 +211,9 @@ export const AuthRoleModal: React.FC<AuthRoleModalProps> = ({ onNavigateToRoleDa
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       placeholder="••••••••••••"
+                      required
                       className="w-full px-3 py-2 bg-white rounded-[2px] border border-[#c5a880]/30 text-xs text-[#1f2428] focus:outline-none focus:border-[#c5a880]"
                     />
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs pt-1">
-                    <button
-                      type="button"
-                      onClick={handleDemoClientQuickFill}
-                      className="text-[11px] text-[#5a1645] hover:underline font-semibold cursor-pointer"
-                    >
-                      Fill Demo Client (customer.demo@lykarealty.ae)
-                    </button>
                   </div>
 
                   <div className="pt-2">

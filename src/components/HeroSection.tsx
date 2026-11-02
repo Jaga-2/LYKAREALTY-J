@@ -51,7 +51,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           {/* Background Image Container with Measured Gradient Scrim */}
           <div className="relative aspect-[16/9] min-h-[480px] lg:min-h-[640px] w-full">
             <img
-              src="/src/assets/images/hero_dubai_residence_1793286170254.jpg"
+              src="/assets/images/hero_dubai_residence_1793286170254.jpg"
               alt="LYKA Realty Flagship Waterfront Residence at Dusk"
               referrerPolicy="no-referrer"
               className="w-full h-full object-cover object-center filter brightness-[0.92]"

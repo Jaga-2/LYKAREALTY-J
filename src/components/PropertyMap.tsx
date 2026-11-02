@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Property, Currency } from '../types';
 import { formatPrice } from '../data/properties';
 import { Eye, MapPin, Compass, X, Sparkles, Building2 } from 'lucide-react';
+import { PropertyImage } from './PropertyImage';
 
 interface PropertyMapProps {
   properties: Property[];
@@ -279,10 +280,9 @@ export const PropertyMap: React.FC<PropertyMapProps> = ({
           </div>
 
           <div className="relative aspect-[16/9] w-full rounded-[2px] overflow-hidden mb-3 border border-white/10 bg-black">
-            <img
+            <PropertyImage
               src={previewProperty.image}
               alt={previewProperty.title}
-              referrerPolicy="no-referrer"
               className="w-full h-full object-cover"
             />
             <div className="absolute bottom-2 left-2 px-2 py-0.5 text-[9px] font-semibold tracking-wider uppercase bg-[#121517]/85 text-[#ffe088] rounded-[2px] border border-[#d4af37]/40">

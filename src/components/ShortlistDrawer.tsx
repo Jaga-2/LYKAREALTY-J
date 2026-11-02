@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Property, Currency, AreaUnit } from '../types';
 import { formatPrice, formatArea } from '../data/properties';
 import { useLanguage } from '../context/LanguageContext';
+import { PropertyImage } from './PropertyImage';
 import { X, Trash2, Eye, Compass, FileCheck, Scale, CheckSquare, Square } from 'lucide-react';
 
 interface ShortlistDrawerProps {
@@ -191,10 +192,9 @@ export const ShortlistDrawer: React.FC<ShortlistDrawerProps> = ({
                         </button>
 
                         <div className="w-20 h-16 rounded-[2px] overflow-hidden bg-[#1f2428] shrink-0">
-                          <img
+                          <PropertyImage
                             src={property.image}
                             alt={property.title}
-                            referrerPolicy="no-referrer"
                             className="w-full h-full object-cover"
                           />
                         </div>

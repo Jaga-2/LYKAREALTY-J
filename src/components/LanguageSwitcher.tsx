@@ -11,7 +11,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ variant = 'n
 
   if (variant === 'footer') {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 max-w-full">
         <span className="text-xs text-[#75777a] flex items-center gap-1.5">
           <Languages className="w-3.5 h-3.5 text-[#c5a880]" />
           <span>Language:</span>

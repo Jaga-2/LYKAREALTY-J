@@ -55,19 +55,19 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-[#faf9f7]/95 backdrop-blur-md border-b border-[#c5a880]/20 transition-all duration-200">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 h-20 flex items-center justify-between gap-4">
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-12 h-20 flex items-center justify-between gap-2 sm:gap-4 overflow-hidden">
         
         {/* Zone 1: Brand wordmark */}
         <button
           onClick={() => onNavigate('home')}
-          className="group flex items-center gap-3 text-left focus:outline-none cursor-pointer"
+          className="group flex items-center gap-3 text-left focus:outline-none cursor-pointer shrink-0 min-w-0"
         >
           <img
             src="/assets/lyka-original-logo.png"
             alt="LYKA Realty logo"
-            className="h-10 w-auto max-w-[180px] object-contain select-none"
+            className="h-10 w-auto max-w-[120px] sm:max-w-[180px] object-contain select-none"
           />
-          <div className="flex flex-col">
+          <div className="hidden lg:flex flex-col">
             <span className="font-editorial text-xl font-medium tracking-[0.18em] text-[#1f2428] whitespace-nowrap shrink-0 group-hover:text-[#5a1645] transition-colors">
               {t.nav.brand}
             </span>
@@ -129,7 +129,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         </nav>
 
         {/* Zone 3: AI Concierge + Account Profile + Currency + Shortlist + CTA */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 shrink-0 min-w-0">
           
           {/* AI Concierge Trigger */}
           {onOpenAIAssistant && (
@@ -181,10 +181,14 @@ export const Navigation: React.FC<NavigationProps> = ({
           </button>
 
           {/* Dynamic Language Switcher (EN / العربية / தமிழ்) */}
-          <LanguageSwitcher />
+          <div className="hidden lg:block">
+            <LanguageSwitcher />
+          </div>
 
           {/* Real-Time Live Currency Converter Widget */}
-          <CurrencySwitcherWidget />
+          <div className="hidden xl:block">
+            <CurrencySwitcherWidget />
+          </div>
 
           {/* Shortlist Drawer Trigger */}
           <button
@@ -238,4 +242,3 @@ export const Navigation: React.FC<NavigationProps> = ({
     </header>
   );
 };
-

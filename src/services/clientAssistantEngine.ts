@@ -37,6 +37,42 @@ export function processClientAssistantTurn(
   const lang = detectLanguageClient(message, existingContext.preferredLanguage || appLang);
   const context = { ...existingContext, preferredLanguage: lang };
 
+  if (/^(i('| a)m\s+)?fine|fine,?\s*thank|doing well/i.test(lower) && !context.stage) {
+    context.stage = 'greeting';
+    return { reply: "I'm doing great, thank you for asking!", context, propertyRecommendations: [], source: 'fallback', quotaExceeded: false };
+  }
+  if (/looking\s+(for\s+)?(a\s+)?property|property\s+search/i.test(lower)) {
+    context.stage = 'discovery';
+    return { reply: "That's wonderful! Are you planning to buy or rent a property in Dubai?", context, propertyRecommendations: [], source: 'fallback', quotaExceeded: false };
+  }
+  if (context.stage === 'discovery' && /buy|purchase|planning\s+to\s+buy/i.test(lower)) {
+    context.purpose = 'For Sale';
+    return { reply: 'Great! What type of property are you interested in? An apartment, villa, or townhouse?', context, propertyRecommendations: [], source: 'fallback', quotaExceeded: false };
+  }
+  if (/^apartment|^flat|apartment$/i.test(lower)) {
+    context.propertyType = 'Apartment';
+    return { reply: 'How many bedrooms would you prefer?', context, propertyRecommendations: [], source: 'fallback', quotaExceeded: false };
+  }
+  if (/(\d+)\s*(bed|br)|\btwo\b|\bthree\b|\bfour\b|\bone\b/i.test(lower) && context.propertyType === 'Apartment') {
+    if (/\btwo\b|2/.test(lower)) context.bedrooms = 2;
+    else if (/\bthree\b|3/.test(lower)) context.bedrooms = 3;
+    else if (/\bfour\b|4/.test(lower)) context.bedrooms = 4;
+    else if (/\bone\b|1/.test(lower)) context.bedrooms = 1;
+    return { reply: 'Perfect! Do you have a preferred budget in AED?', context, propertyRecommendations: [], source: 'fallback', quotaExceeded: false };
+  }
+  if (/(aed|million|budget)/i.test(lower) && context.bedrooms !== undefined) {
+    const million = lower.match(/([\d.]+)\s*million/i);
+    const amount = lower.match(/([\d,]+)/);
+    if (million) context.maxBudget = Math.round(Number(million[1]) * 1000000);
+    else if (amount) context.maxBudget = Number(amount[1].replace(/,/g, ''));
+    return { reply: 'Got it! Do you have a preferred location in Dubai?', context, propertyRecommendations: [], source: 'fallback', quotaExceeded: false };
+  }
+  if (context.maxBudget && /dubai marina|marina/i.test(lower)) {
+    context.location = 'Dubai Marina';
+    context.stage = 'searching';
+    return { reply: 'Excellent choice! Let me find properties matching your requirements.', context, propertyRecommendations: [], source: 'fallback', quotaExceeded: false };
+  }
+
   // Determine if this is the first user turn
   const userTurns = conversationHistory.filter(h => h.role === 'user');
   const isFirstTurn = userTurns.length === 0 && !context.stage;
@@ -300,4 +336,3 @@ export function processClientAssistantTurn(
 
   return { reply: defaultReply, context, propertyRecommendations: [], source: 'fallback', quotaExceeded: true };
 }
-

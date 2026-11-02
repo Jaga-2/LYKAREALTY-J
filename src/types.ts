@@ -48,6 +48,7 @@ export interface Property {
     x: number; // percentage on map (0-100)
     y: number; // percentage on map (0-100)
   };
+  isIllustrativeImages?: boolean;
 }
 
 export interface FilterState {

@@ -569,6 +569,165 @@ export async function processAssistantTurn(
     context.purpose = intents.detectedPurpose === 'Invest' ? 'For Sale' : intents.detectedPurpose;
   }
 
+  // Fixed LYKA consultation flow. Each answer advances only its corresponding
+  // stage; unexpected answers are kept as context and do not skip a question.
+  const scriptLower = message.toLowerCase();
+  const stagedReply = (en: string, ta: string, tanglish: string): string =>
+    lang === 'ta' ? ta : lang === 'tanglish' ? tanglish : en;
+
+  if (!context.stage && /^(i('| a)m\s+)?fine|fine,?\s*thank|doing well/i.test(scriptLower)) {
+    context.stage = 'greeting';
+    return {
+      reply: stagedReply(
+        "I'm doing great, thank you for asking!",
+        'நான் நன்றாக இருக்கிறேன், கேட்டதற்கு மிக்க நன்றி!',
+        'Naan romba nalla irukken! Kettadhukku nandri!'
+      ),
+      context,
+      propertyRecommendations: [],
+      source: 'engine'
+    };
+  }
+
+  if (/looking\s+(for\s+)?(a\s+)?property|property\s+search|சொத்து|property venum|property theva/i.test(scriptLower)) {
+    context.stage = 'discovery';
+    return {
+      reply: stagedReply(
+        "That's wonderful! Are you planning to buy or rent a property in Dubai?",
+        'அருமை! துபாயில் சொத்தை வாங்க அல்லது வாடகைக்கு பார்க்கிறீர்களா?',
+        'Super! Dubai la property buy panna paakkareengala illa rent edukka paakkareengala?'
+      ),
+      context,
+      propertyRecommendations: [],
+      source: 'engine'
+    };
+  }
+
+  if (context.stage === 'discovery' && /buy|purchase|planning\s+to\s+buy|வாங்க/i.test(scriptLower)) {
+    context.purpose = 'For Sale';
+    context.stage = 'discovery';
+    return {
+      reply: stagedReply(
+        'Great! What type of property are you interested in? An apartment, villa, or townhouse?',
+        'அருமை! உங்களுக்கு apartment, villa அல்லது townhouse எந்த வகை வேண்டும்?',
+        'Great! Apartment, villa, illa townhouse — enna type property venum?'
+      ),
+      context,
+      propertyRecommendations: [],
+      source: 'engine'
+    };
+  }
+
+  if ((context.propertyType === undefined || context.stage === 'discovery') &&
+      /\b(?:apartment|flat)\b|அடுக்குமாடி/i.test(scriptLower)) {
+    context.propertyType = 'Apartment';
+    context.stage = 'discovery';
+    return {
+      reply: stagedReply(
+        'How many bedrooms would you prefer?',
+        'எத்தனை bedrooms உங்களுக்கு தேவை?',
+        'Neenga enna count bedrooms prefer pannuveenga?'
+      ),
+      context,
+      propertyRecommendations: [],
+      source: 'engine'
+    };
+  }
+
+  if (context.propertyType === 'Apartment') {
+    const bedroomsMatch = scriptLower.match(/(\d+)[\s-]*(bed|br)|\b(one|two|three|four|five)\b|ஒரு|இரண்டு|மூன்று|நான்கு/i);
+    if (bedroomsMatch) {
+      if (/(2|\btwo\b|இரண்டு)/i.test(scriptLower)) context.bedrooms = 2;
+      else if (/(3|\bthree\b|மூன்று)/i.test(scriptLower)) context.bedrooms = 3;
+      else if (/(4|\bfour\b|நான்கு)/i.test(scriptLower)) context.bedrooms = 4;
+      else if (/(1|\bone\b|ஒரு)/i.test(scriptLower)) context.bedrooms = 1;
+      else if (/(5|\bfive\b)/i.test(scriptLower)) context.bedrooms = 5;
+      if (context.bedrooms !== undefined) {
+        return {
+          reply: stagedReply(
+            'Perfect! Do you have a preferred budget in AED?',
+            'சரியான தேர்வு! உங்களுக்கு விருப்பமான பட்ஜெட் AED இல் எவ்வளவு?',
+            'Perfect! Ungalukku preferred budget AED la enna irukku?'
+          ),
+          context,
+          propertyRecommendations: [],
+          source: 'engine'
+        };
+      }
+    }
+  }
+
+  if (context.bedrooms !== undefined) {
+    const million = scriptLower.match(/([\d.]+)\s*million|([\d.]+)\s*million\s*aed/i);
+    const numeric = scriptLower.match(/([\d,]+(?:\.\d+)?)[\s]*(aed|million)/i) ||
+                    scriptLower.match(/(?:budget|around)[^\d]*([\d,]+)/i);
+    if (million || numeric) {
+      const parsed = million?.[1] || numeric?.[1] || '';
+      if (parsed) {
+        if (/million/i.test(scriptLower)) context.maxBudget = Math.round(Number(parsed.replace(/,/g, '').replace(/[^\d.]/g, '')) * 1000000);
+        else context.maxBudget = Number(parsed.replace(/,/g, ''));
+      }
+      if (context.maxBudget) {
+        return {
+          reply: stagedReply(
+            'Got it! Do you have a preferred location in Dubai?',
+            'புரிந்தது! துபாயில் உங்களுக்கு விருப்பமான இடம் உள்ளதா?',
+            'Got it! Dubai la preferred location enga irukku?'
+          ),
+          context,
+          propertyRecommendations: [],
+          source: 'engine'
+        };
+      }
+    }
+  }
+
+  if (context.maxBudget !== undefined) {
+    const locationMatch = scriptLower.match(/dubai marina|downtown dubai|palm jumeirah|business bay|jbr|jlt/i);
+    if (locationMatch) {
+      context.location = locationMatch[0].toLowerCase() === 'dubai marina' ? 'Dubai Marina' : locationMatch[0];
+      context.stage = 'searching';
+      let recommendations: PropertyRecord[] = [];
+      if (isPostgresConfigured()) {
+        try {
+          const search = await searchPropertiesFromDb({
+            location: context.location,
+            propertyType: context.propertyType,
+            bedrooms: context.bedrooms,
+            maxPrice: context.maxBudget,
+            purpose: context.purpose || 'For Sale',
+            limit: 3,
+            page: 1
+          });
+          recommendations = search.properties;
+          if (recommendations.length === 0) {
+            const broadened = await searchPropertiesFromDb({
+              location: context.location,
+              propertyType: context.propertyType,
+              bedrooms: context.bedrooms,
+              maxPrice: context.maxBudget,
+              limit: 3,
+              page: 1
+            });
+            recommendations = broadened.properties;
+          }
+        } catch (error: any) {
+          console.warn('[Assistant Engine] Property search failed:', error.message);
+        }
+      }
+      return {
+        reply: stagedReply(
+          'Excellent choice! Let me find properties matching your requirements.',
+          'சிறந்த தேர்வு! உங்கள் தேவைகளுக்கு பொருந்தும் சொத்துகளை நான் பார்ப்பேன்.',
+          'Excellent choice! Ungaloda requirements ku matching properties paakkiren.'
+        ),
+        context,
+        propertyRecommendations: recommendations,
+        source: 'engine'
+      };
+    }
+  }
+
   // -------------------------------------------------------------
   // DIALOGUE ROUTE 1: BUSY / PAUSING
   // -------------------------------------------------------------

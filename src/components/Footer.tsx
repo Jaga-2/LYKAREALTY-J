@@ -167,7 +167,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenConsultation }
           <div>
             © 2026 LYKA Realty Limited. Regulated under Dubai Real Estate Regulatory Agency (RERA ORN: 28419). All rights reserved.
           </div>
-          <div className="flex flex-wrap items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 max-w-full">
             <LanguageSwitcher variant="footer" />
             <span className="hover:text-white cursor-pointer">Privacy & Discretion</span>
             <span className="hover:text-white cursor-pointer">DIFC SPV Protocols</span>

@@ -3,6 +3,7 @@ import { Property, Currency, AreaUnit, Screen } from '../types';
 import { formatPrice, formatArea } from '../data/properties';
 import { ArrowRight, Bookmark, Eye, ShieldCheck, Compass } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { PropertyImage } from './PropertyImage';
 
 interface CuratedCollectionProps {
   properties: Property[];
@@ -67,10 +68,9 @@ export const CuratedCollection: React.FC<CuratedCollectionProps> = ({
               >
                 {/* 4:3 Strict Ratio Image Frame */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#1f2428]">
-                  <img
+                  <PropertyImage
                     src={property.image}
                     alt={property.title}
-                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />
 

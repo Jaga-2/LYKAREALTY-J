@@ -4,6 +4,8 @@ import { formatPrice, formatArea } from '../data/properties';
 import { PropertyMap } from './PropertyMap';
 import { CurrencySwitcherWidget } from './CurrencySwitcherWidget';
 import { useLanguage } from '../context/LanguageContext';
+import { apiUrl } from '../lib/api';
+import { PropertyImage } from './PropertyImage';
 import {
   Search,
   SlidersHorizontal,
@@ -90,7 +92,7 @@ export const PropertySearchScreen: React.FC<PropertySearchScreenProps> = ({
         params.append('page', String(page));
         params.append('limit', '24');
 
-        const res = await fetch(`/api/properties?${params.toString()}`);
+        const res = await fetch(apiUrl(`/api/properties?${params.toString()}`));
         if (res.ok) {
           const data = await res.json();
           if (isMounted && data.properties) {
@@ -672,13 +674,17 @@ export const PropertySearchScreen: React.FC<PropertySearchScreenProps> = ({
                       >
                         {/* 4:3 Strict Image Ratio */}
                         <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#1f2428]">
-                          <img
+                          <PropertyImage
                             src={property.image}
                             alt={property.title}
-                            referrerPolicy="no-referrer"
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+                          {property.isIllustrativeImages && (
+                            <div className="absolute bottom-3 left-3 z-10 px-2 py-1 bg-[#121517]/90 text-white text-[8px] font-bold tracking-[0.14em] uppercase rounded-[2px] border border-[#c5a880]/40">
+                              Illustrative Demo Images
+                            </div>
+                          )}
 
                           {/* Status Chip */}
                           <div className="absolute top-3 left-3 z-10">
@@ -841,10 +847,9 @@ const PropertyCompactCard: React.FC<{
       className="bg-white rounded-[4px] border border-[#c5a880]/30 p-4 hover:shadow-md cursor-pointer transition-all flex gap-4 items-center"
     >
       <div className="w-24 h-20 rounded-[2px] overflow-hidden bg-[#1f2428] shrink-0">
-        <img
+        <PropertyImage
           src={property.image}
           alt={property.title}
-          referrerPolicy="no-referrer"
           className="w-full h-full object-cover"
         />
       </div>
